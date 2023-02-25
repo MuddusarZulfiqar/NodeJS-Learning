@@ -63,10 +63,18 @@
 // process.nextTick(() => console.log("Next Tick 1"));
 // Promise.resolve().then(() => console.log("Promise 2"));
 // process.nextTick(() => console.log("Next Tick 2"));
-
 // ___________________________________________________
 
 console.log("Start");
+setTimeout(() => console.log("Timeout 1"), 0);
+setTimeout(() => {
+  console.log("Timeout 2");
+  process.nextTick(() => {
+    console.log("Next Tick Inside Timeout 2");
+  });
+}, 0);
+setTimeout(() => console.log("Timeout 3"), 0);
+
 process.nextTick(() => console.log("Next Tick 1"));
 process.nextTick(() => {
   console.log("Next Tick 2");
