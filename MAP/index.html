@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps with Multiple Points</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script>
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 37.7749, lng: -122.4194 },
+          zoom: 12,
+        });
+
+        var startPoint = new google.maps.LatLng(31.4678, 74.2666);
+        var endPoint = new google.maps.LatLng(31.3695, 74.1768);
+        var currentLocation = [];
+        var currentPos;
+        var totalDistance = 0;
+        const setCurrentLocation = () => {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+              // firstly remove current location marker from map if exist then add new marker
+              if (currentLocation.length > 0) {
+                currentLocation[0].setMap(null);
+              }
+              currentLocation = [];
+
+              currentPos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              };
+
+              var marker = new google.maps.Marker({
+                position: currentPos,
+                map: map,
+                title: "Current Location",
+                // set image for marker
+                icon: {
+                  url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+                  scaledSize: new google.maps.Size(30, 30),
+                },
+              });
+
+              currentLocation.push(marker);
+              console.log(currentPos.lat, currentPos.lng);
+
+              // set map center on marker
+              map.setCenter(currentPos);
+              // set the 1000 meters radius circle around the current location
+              var circle = new google.maps.Circle({
+                center: currentPos,
+                radius: 1000,
+                map: map,
+                strokeColor: "#FF0000",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "#FF0000",
+                fillOpacity: 0.35,
+              });
+              if (
+                google.maps.geometry.poly.isLocationOnEdge(
+                  currentPos,
+                  path,
+                  0.0001
+                ) &&
+                google.maps.geometry.poly.containsLocation(
+                  currentPos,
+                  path,
+                  0.0001
+                )
+              ) {
+                console.log("You are on path");
+              } else {
+                console.log("You are not on path");
+              }
+            });
+          }
+        };
+        var points = [];
+        // get current location on load
+
+        setCurrentLocation();
+
+        // create a circle of 1000 meters around the current location to simulate a radius
+
+        var path = new google.maps.Polyline({
+          path: [startPoint].concat(points).concat([endPoint]),
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          map: map,
+        });
+
+        var startMarker = new google.maps.Marker({
+          position: startPoint,
+          map: map,
+          title: "Start",
+        });
+
+        var endMarker = new google.maps.Marker({
+          position: endPoint,
+          map: map,
+          title: "End",
+        });
+
+        // set map center on marker
+
+        for (var i = 0; i < points.length; i++) {
+          var marker = new google.maps.Marker({
+            position: points[i],
+            map: map,
+            title: "Point " + (i + 1),
+            // set image for marker
+            icon: {
+              url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+              scaledSize: new google.maps.Size(30, 30),
+            },
+          });
+        }
+
+        // on map click add new marker and add to path
+        google.maps.event.addListener(map, "click", function (event) {
+          var marker = new google.maps.Marker({
+            position: event.latLng,
+            map: map,
+            title: "Point " + (points.length + 1),
+            // set image for marker
+            icon: {
+              url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+              scaledSize: new google.maps.Size(30, 30),
+            },
+          });
+          points.push(event.latLng);
+          path.setPath([startPoint].concat(points).concat([endPoint]));
+          console.log(event.latLng.lat(), event.latLng.lng());
+
+          // set map center on marker
+          map.setCenter(event.latLng);
+
+          //   calculate  the total distance
+          totalDistance = google.maps.geometry.spherical.computeLength(
+            path.getPath()
+          );
+          console.log(totalDistance / 1000 + " km");
+
+          // get the total time to reach the destination from current location by foot
+          var time = totalDistance / 1000 / 5;
+          console.log(time + " hours");
+
+          // set price according to the distance and time to reach the destination
+          var price = Math.round((totalDistance / 1000 / 5) * 100);
+          console.log(price + " PKR");
+        });
+
+        // on every 5 seconds setCurrentLocation function will call
+        // setInterval(setCurrentLocation, 1000);
+      }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBFdD8BGlxGo5laRkhT1X2L72ZGvHK04nQ&callback=initMap"></script>
+  </body>
+</html>
