@@ -1,2 +1,8 @@
 # node modules
 node_modules
+
+.env
+
+# Remove MAP folder 
+MAP 
+
